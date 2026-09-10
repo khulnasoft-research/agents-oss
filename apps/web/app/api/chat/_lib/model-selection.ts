@@ -63,10 +63,9 @@ export function resolveChatModelSelection({
     return { id: APP_DEFAULT_MODEL_ID as AgentModelSelection["id"] };
   }
 
-  const gatewayConfig =
-    customProviders?.length
-      ? resolveCustomProviderConfig(availableModelId, customProviders)
-      : undefined;
+  const gatewayConfig = customProviders?.length
+    ? resolveCustomProviderConfig(availableModelId, customProviders)
+    : undefined;
 
   return {
     id: availableModelId as AgentModelSelection["id"],

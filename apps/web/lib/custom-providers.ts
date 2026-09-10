@@ -1,8 +1,10 @@
-import { eq, and, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import { db } from "./client";
-import { customProviders, type CustomProvider } from "./schema";
+import { db } from "./db/client";
+import { customProviders, type CustomProvider } from "./db/schema";
+
+export type { CustomProvider } from "./db/schema";
 
 export const customProviderSchema = z.object({
   name: z.string().min(1).max(100),
@@ -30,11 +32,6 @@ export interface CustomProviderModel {
   providerPrefix: string;
 }
 
-function maskApiKey(key: string): string {
-  if (key.length <= 8) return "••••••••";
-  return `${key.slice(0, 4)}••••${key.slice(-4)}`;
-}
-
 function toListItem(
   provider: CustomProvider,
   userId: string,
@@ -58,10 +55,7 @@ export async function getCustomProviders(
     .select()
     .from(customProviders)
     .where(
-      and(
-        isNull(customProviders.userId),
-        eq(customProviders.isEnabled, true),
-      ),
+      and(isNull(customProviders.userId), eq(customProviders.isEnabled, true)),
     );
 
   const userProviders = await db
@@ -71,6 +65,33 @@ export async function getCustomProviders(
 
   const allProviders = [...adminProviders, ...userProviders];
   return allProviders.map((p) => toListItem(p, userId));
+}
+
+/**
+ * Returns all enabled custom provider records (with API keys) accessible by
+ * the user: admin-wide providers + the user's own providers.
+ */
+export async function getCustomProvidersWithKeys(
+  userId: string,
+): Promise<CustomProvider[]> {
+  const adminProviders = await db
+    .select()
+    .from(customProviders)
+    .where(
+      and(isNull(customProviders.userId), eq(customProviders.isEnabled, true)),
+    );
+
+  const userProviders = await db
+    .select()
+    .from(customProviders)
+    .where(
+      and(
+        eq(customProviders.userId, userId),
+        eq(customProviders.isEnabled, true),
+      ),
+    );
+
+  return [...adminProviders, ...userProviders];
 }
 
 export async function getCustomProviderByKey(

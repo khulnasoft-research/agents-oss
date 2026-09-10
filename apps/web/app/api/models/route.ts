@@ -10,7 +10,7 @@ import type { AvailableModel } from "@/lib/models";
 import { getServerSession } from "@/lib/session/get-server-session";
 import { db } from "@/lib/db/client";
 import { customProviders } from "@/lib/db/schema";
-import { eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 const CACHE_CONTROL = "private, no-store";
 

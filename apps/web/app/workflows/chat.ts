@@ -44,6 +44,10 @@ import { dedupeMessageReasoning } from "@/lib/chat/dedupe-message-reasoning";
 import { getChatById, getSessionById } from "@/lib/db/sessions";
 import { getUserPreferences } from "@/lib/db/user-preferences";
 import {
+  type CustomProviderConfig,
+  resolveChatModelSelection,
+} from "../api/chat/_lib/model-selection";
+import {
   filterModelVariantsForSession,
   sanitizeSelectedModelIdForSession,
   sanitizeUserPreferencesForSession,
@@ -54,12 +58,13 @@ import {
   type ChatHarnessId,
   resolveHarnessRunModelId,
 } from "@/lib/chat-harnesses";
+import { getCustomProvidersWithKeys } from "@/lib/custom-providers";
+import { getEnvCustomProviders } from "@/lib/custom-providers-env";
 import type { Session as AuthSession } from "@/lib/session/types";
 import type {
   WorkflowRunStatus,
   WorkflowRunStepTiming,
 } from "@/lib/db/workflow-runs";
-import { resolveChatModelSelection } from "../api/chat/_lib/model-selection";
 import { resolveChatSandboxRuntime } from "./chat-sandbox-runtime";
 import { runHarnessAgentStep } from "./harness-step";
 import {
@@ -161,6 +166,38 @@ const convertMessages = async (
   });
 };
 
+async function loadCustomProviderConfigs(
+  userId: string,
+): Promise<CustomProviderConfig[]> {
+  try {
+    const [dbProviders, envProviders] = await Promise.all([
+      getCustomProvidersWithKeys(userId),
+      Promise.resolve(getEnvCustomProviders()),
+    ]);
+
+    const configs: CustomProviderConfig[] = dbProviders.map((provider) => ({
+      id: provider.id,
+      name: provider.name,
+      baseUrl: provider.baseUrl,
+      apiKey: provider.apiKey,
+    }));
+
+    for (const env of envProviders) {
+      configs.push({
+        id: `env:${env.name}`,
+        name: env.name,
+        baseUrl: env.baseUrl,
+        apiKey: env.apiKey,
+      });
+    }
+
+    return configs;
+  } catch (error) {
+    console.error("Failed to load custom provider configs:", error);
+    return [];
+  }
+}
+
 async function resolveChatModelRuntime(params: {
   userId: string;
   sessionId: string;
@@ -210,10 +247,15 @@ async function resolveChatModelRuntime(params: {
     ) ??
     chat.modelId ??
     null;
+
+  // Load custom provider configs for model selection
+  const customProviderConfigs = await loadCustomProviderConfigs(params.userId);
+
   const mainModelSelection = resolveChatModelSelection({
     selectedModelId,
     modelVariants,
     missingVariantLabel: "Selected model variant",
+    customProviders: customProviderConfigs,
   });
   const subagentModelSelection = preferences?.defaultSubagentModelId
     ? resolveChatModelSelection({
@@ -225,6 +267,7 @@ async function resolveChatModelRuntime(params: {
         ),
         modelVariants,
         missingVariantLabel: "Subagent model variant",
+        customProviders: customProviderConfigs,
       })
     : undefined;
   const autoCommitEnabled =
