@@ -263,7 +263,7 @@ describe("/api/sessions/[sessionId]/code-editor", () => {
       "The code editor is disabled in the hosted demo. Deploy your own copy to unlock the full Open Agents template.";
 
     const response = await POST(
-      new Request("https://agents-oss.dev/api/sessions/session-1/code-editor", {
+      new Request("https://agents-oss.vercel.app/api/sessions/session-1/code-editor", {
         method: "POST",
       }),
       createRouteContext(),

@@ -347,7 +347,7 @@ export async function GET(request: Request, context: OgRouteContext) {
               letterSpacing: "0.01em",
             }}
           >
-            agents-oss.dev
+            agents-oss.vercel.app
           </span>
         </div>
       </div>

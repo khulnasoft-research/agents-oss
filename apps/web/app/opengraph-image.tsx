@@ -170,7 +170,7 @@ export default function OgImage() {
                 letterSpacing: "0.01em",
               }}
             >
-              agents-oss.dev
+              agents-oss.vercel.app
             </span>
           </div>
         </div>

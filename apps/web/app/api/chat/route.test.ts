@@ -394,7 +394,7 @@ describe("/api/chat route", () => {
             },
           ],
         }),
-        "https://agents-oss.dev/api/chat",
+        "https://agents-oss.vercel.app/api/chat",
       ),
     );
     const body = (await response.json()) as { error: string };
@@ -432,7 +432,7 @@ describe("/api/chat route", () => {
             },
           ],
         }),
-        "https://agents-oss.dev/api/chat",
+        "https://agents-oss.vercel.app/api/chat",
       ),
     );
 

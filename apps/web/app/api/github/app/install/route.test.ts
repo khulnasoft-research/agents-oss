@@ -121,7 +121,7 @@ describe("GET /api/github/app/install", () => {
 
     const response = await GET(
       createRequest(
-        "https://agents-oss.dev/api/github/app/install?next=/settings/connections",
+        "https://agents-oss.vercel.app/api/github/app/install?next=/settings/connections",
       ),
     );
 

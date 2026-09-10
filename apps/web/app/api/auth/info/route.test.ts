@@ -131,7 +131,7 @@ describe("GET /api/auth/info", () => {
     const { GET } = await routeModulePromise;
 
     const response = await GET(
-      createRequest("https://agents-oss.dev/api/auth/info"),
+      createRequest("https://agents-oss.vercel.app/api/auth/info"),
     );
 
     expect(response.status).toBe(200);

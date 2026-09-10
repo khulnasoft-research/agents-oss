@@ -168,7 +168,7 @@ describe("/api/sessions POST vercel project linking", () => {
           repoOwner: "khulnasoft-research",
           repoName: "agents-oss",
         },
-        "https://agents-oss.dev/api/sessions",
+        "https://agents-oss.vercel.app/api/sessions",
       ),
     );
     const body = (await response.json()) as { error: string };

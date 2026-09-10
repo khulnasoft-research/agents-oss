@@ -2,8 +2,8 @@ import type { Session } from "@/lib/session/types";
 
 const ALLOWED_VERCEL_EMAIL_DOMAIN = "vercel.com";
 const MANAGED_TEMPLATE_HOSTS = new Set([
-  "agents-oss.dev",
-  "www.agents-oss.dev",
+  "agents-oss.vercel.app",
+  "www.agents-oss.vercel.app",
 ]);
 const LOCAL_DEVELOPMENT_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 

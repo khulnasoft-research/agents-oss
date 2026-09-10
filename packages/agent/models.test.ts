@@ -254,7 +254,7 @@ describe("gateway attribution headers", () => {
     expect(createGatewayCalls).toEqual([
       {
         headers: {
-          "http-referer": "https://agents-oss.dev",
+          "http-referer": "https://agents-oss.vercel.app",
           "x-title": "Open Agents",
         },
       },
@@ -289,7 +289,7 @@ describe("gateway attribution headers", () => {
         baseURL: "https://custom.api",
         apiKey: "sk-test",
         headers: {
-          "http-referer": "https://agents-oss.dev",
+          "http-referer": "https://agents-oss.vercel.app",
           "x-title": "Open Agents",
         },
       },

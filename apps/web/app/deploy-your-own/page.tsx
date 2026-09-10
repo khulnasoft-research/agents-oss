@@ -42,7 +42,7 @@ const DEPLOY_TEMPLATE_URL = (() => {
       "demo-description",
       "Open-source reference app for building and running background coding agents on Vercel.",
     ],
-    ["demo-url", "https://agents-oss.dev/"],
+    ["demo-url", "https://agents-oss.vercel.app/"],
     ["env", DEPLOY_ENV_VARS.join(",")],
     [
       "envDescription",
