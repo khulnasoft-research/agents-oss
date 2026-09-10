@@ -385,6 +385,28 @@ export const userPreferences = pgTable("user_preferences", {
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type NewUserPreferences = typeof userPreferences.$inferInsert;
 
+// Custom AI provider configurations (admin-wide or per-user BYOK)
+export const customProviders = pgTable(
+  "custom_providers",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    baseUrl: text("base_url").notNull(),
+    apiKey: text("api_key").notNull(),
+    isEnabled: boolean("is_enabled").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("custom_providers_user_id_idx").on(table.userId),
+    uniqueIndex("custom_providers_user_name_idx").on(table.userId, table.name),
+  ],
+);
+
+export type CustomProvider = typeof customProviders.$inferSelect;
+export type NewCustomProvider = typeof customProviders.$inferInsert;
+
 // Usage tracking — one row per assistant turn (append-only)
 export const usageEvents = pgTable("usage_events", {
   id: text("id").primaryKey(),
