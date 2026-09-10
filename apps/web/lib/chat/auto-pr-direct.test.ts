@@ -102,7 +102,7 @@ const sandbox = {
   exec: execSpy,
 };
 
-mock.module("@open-agents/sandbox", () => ({
+mock.module("@agents-oss/sandbox", () => ({
   withTemporaryGitHubAuth: withTemporaryGitHubAuthSpy,
 }));
 

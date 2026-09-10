@@ -1,5 +1,10 @@
-import { isToolUIPart, type LanguageModelUsage, type UIMessageChunk } from "ai";
-import type { SandboxState, Sandbox } from "@open-agents/sandbox";
+import {
+  isToolUIPart,
+  type FinishReason,
+  type LanguageModelUsage,
+  type UIMessageChunk,
+} from "ai";
+import type { SandboxState, Sandbox } from "@agents-oss/sandbox";
 import type { WebAgentUIMessage } from "@/app/types";
 import type { AutoCommitResult } from "@/lib/chat/auto-commit-direct";
 import type { AutoCreatePrResult } from "@/lib/chat/auto-pr-direct";
@@ -25,9 +30,12 @@ import {
   type WorkflowRunStepTiming,
 } from "@/lib/db/workflow-runs";
 import { recordUsage } from "@/lib/db/usage";
+import { legacyCachedInputTokens } from "@agents-oss/shared/lib/usage";
 
 const cachedInputTokensFor = (usage: LanguageModelUsage) =>
-  usage.inputTokenDetails?.cacheReadTokens ?? usage.cachedInputTokens ?? 0;
+  usage.inputTokenDetails?.cacheReadTokens ??
+  legacyCachedInputTokens(usage) ??
+  0;
 
 type UsageByModel = {
   usage: LanguageModelUsage;
@@ -221,7 +229,7 @@ export async function persistSandboxState(
 ): Promise<void> {
   "use step";
   try {
-    const { connectSandbox } = await import("@open-agents/sandbox");
+    const { connectSandbox } = await import("@agents-oss/sandbox");
     const sandbox = await connectSandbox(sandboxState);
     const currentState = sandbox.getState?.() as SandboxState | undefined;
     if (currentState) {
@@ -234,6 +242,22 @@ export async function persistSandboxState(
     }
   } catch (error) {
     console.error("[workflow] Failed to persist sandbox state:", error);
+  }
+}
+
+export async function persistChatHarnessSessionState(
+  chatId: string,
+  harnessSessionState: unknown,
+): Promise<void> {
+  "use step";
+  try {
+    await updateChat(chatId, {
+      harnessSessionState: harnessSessionState ?? null,
+    });
+  } catch (error) {
+    // Best-effort: without persisted state the next turn starts a fresh
+    // harness session from the transcript.
+    console.error("[workflow] Failed to persist harness session state:", error);
   }
 }
 
@@ -371,7 +395,7 @@ export async function recordWorkflowUsage(
 
   try {
     const { collectTaskToolUsageEvents, sumLanguageModelUsage } =
-      await import("@open-agents/agent");
+      await import("@agents-oss/agent");
 
     if (workflowRun) {
       try {
@@ -474,7 +498,7 @@ export async function refreshDiffCache(
 ): Promise<void> {
   "use step";
   try {
-    const { connectSandbox } = await import("@open-agents/sandbox");
+    const { connectSandbox } = await import("@agents-oss/sandbox");
     const { computeAndCacheDiff } = await import("@/lib/diff/compute-diff");
     const sandbox: Sandbox = await connectSandbox(sandboxState);
     await computeAndCacheDiff({ sandbox, sessionId });
@@ -487,16 +511,29 @@ export async function closeStream(
   writable: WritableStream<UIMessageChunk>,
 ): Promise<void> {
   "use step";
-  await writable.close();
+  const { isStreamAlreadyCompletedError } = await import("./stream-conflict");
+  try {
+    await writable.close();
+  } catch (error) {
+    if (!isStreamAlreadyCompletedError(error)) {
+      throw error;
+    }
+  }
 }
 
 export async function sendFinish(
   writable: WritableStream<UIMessageChunk>,
+  finishReason: FinishReason = "stop",
 ): Promise<void> {
   "use step";
+  const { isStreamAlreadyCompletedError } = await import("./stream-conflict");
   const writer = writable.getWriter();
   try {
-    await writer.write({ type: "finish", finishReason: "stop" });
+    await writer.write({ type: "finish", finishReason });
+  } catch (error) {
+    if (!isStreamAlreadyCompletedError(error)) {
+      throw error;
+    }
   } finally {
     writer.releaseLock();
   }
@@ -507,7 +544,7 @@ export async function hasAutoCommitChangesStep(params: {
 }): Promise<boolean> {
   "use step";
   try {
-    const { connectSandbox } = await import("@open-agents/sandbox");
+    const { connectSandbox } = await import("@agents-oss/sandbox");
     const sandbox: Sandbox = await connectSandbox(params.sandboxState);
     const statusResult = await sandbox.exec(
       "git status --porcelain",
@@ -536,7 +573,7 @@ export async function runAutoCommitStep(params: {
 }): Promise<AutoCommitResult> {
   "use step";
   try {
-    const { connectSandbox } = await import("@open-agents/sandbox");
+    const { connectSandbox } = await import("@agents-oss/sandbox");
     const { performAutoCommit } = await import("@/lib/chat/auto-commit-direct");
     const sandbox = await connectSandbox(params.sandboxState);
     return await performAutoCommit({
@@ -567,7 +604,7 @@ export async function runAutoCreatePrStep(params: {
 }): Promise<AutoCreatePrResult> {
   "use step";
   try {
-    const { connectSandbox } = await import("@open-agents/sandbox");
+    const { connectSandbox } = await import("@agents-oss/sandbox");
     const { performAutoCreatePr } = await import("@/lib/chat/auto-pr-direct");
     const sandbox = await connectSandbox(params.sandboxState);
     const result = await performAutoCreatePr({

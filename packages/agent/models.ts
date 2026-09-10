@@ -176,7 +176,7 @@ export function gateway(
   const { config, providerOptionsOverrides, appName, appUrl } = options;
 
   const attributionHeaders = {
-    "http-referer": appUrl ?? "https://open-agents.dev",
+    "http-referer": appUrl ?? "https://agents-oss.vercel.app",
     "x-title": appName ?? "Open Agents",
   };
 

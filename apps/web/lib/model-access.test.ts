@@ -28,7 +28,7 @@ const vercelSession = {
   },
 };
 
-const requestUrl = "https://open-agents.dev/api/test";
+const requestUrl = "https://agents-oss.vercel.app/api/test";
 
 const userOpusVariant: ModelVariant = {
   id: "variant:user-opus",

@@ -1,6 +1,6 @@
 # Open Agents
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?project-name=open-agents&repository-name=open-agents&repository-url=https%3A%2F%2Fgithub.com%2Fvercel-labs%2Fopen-agents&demo-title=Open+Agents&demo-description=Open-source+reference+app+for+building+and+running+background+coding+agents+on+Vercel.&demo-url=https%3A%2F%2Fopen-agents.dev%2F&env=POSTGRES_URL%2CBETTER_AUTH_SECRET%2CNEXT_PUBLIC_VERCEL_APP_CLIENT_ID%2CVERCEL_APP_CLIENT_SECRET%2CNEXT_PUBLIC_GITHUB_CLIENT_ID%2CGITHUB_CLIENT_SECRET%2CGITHUB_APP_ID%2CGITHUB_APP_PRIVATE_KEY%2CNEXT_PUBLIC_GITHUB_APP_SLUG%2CGITHUB_WEBHOOK_SECRET&envDescription=Neon+can+provide+POSTGRES_URL+automatically.+Generate+BETTER_AUTH_SECRET+yourself%2C+then+add+your+Vercel+OAuth+and+GitHub+App+credentials+for+a+full+deployment.&products=%255B%257B%2522type%2522%253A%2522integration%2522%252C%2522protocol%2522%253A%2522storage%2522%252C%2522productSlug%2522%253A%2522neon%2522%252C%2522integrationSlug%2522%253A%2522neon%2522%257D%252C%257B%2522type%2522%253A%2522integration%2522%252C%2522protocol%2522%253A%2522storage%2522%252C%2522productSlug%2522%253A%2522upstash-kv%2522%252C%2522integrationSlug%2522%253A%2522upstash%2522%257D%255D&skippable-integrations=1)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?project-name=agents-oss&repository-name=agents-oss&repository-url=https%3A%2F%2Fgithub.com%2Fkhulnasoft-research%2Fagents-oss&demo-title=Open+Agents&demo-description=Open-source+reference+app+for+building+and+running+background+coding+agents+on+Vercel.&demo-url=https%3A%2F%2Fagents-oss.vercel.app%2F&env=POSTGRES_URL%2CBETTER_AUTH_SECRET%2CNEXT_PUBLIC_VERCEL_APP_CLIENT_ID%2CVERCEL_APP_CLIENT_SECRET%2CNEXT_PUBLIC_GITHUB_CLIENT_ID%2CGITHUB_CLIENT_SECRET%2CGITHUB_APP_ID%2CGITHUB_APP_PRIVATE_KEY%2CNEXT_PUBLIC_GITHUB_APP_SLUG%2CGITHUB_WEBHOOK_SECRET&envDescription=Neon+can+provide+POSTGRES_URL+automatically.+Generate+BETTER_AUTH_SECRET+yourself%2C+then+add+your+Vercel+OAuth+and+GitHub+App+credentials+for+a+full+deployment.&products=%255B%257B%2522type%2522%253A%2522integration%2522%252C%2522protocol%2522%253A%2522storage%2522%252C%2522productSlug%2522%253A%2522neon%2522%252C%2522integrationSlug%2522%253A%2522neon%2522%257D%252C%257B%2522type%2522%253A%2522integration%2522%252C%2522protocol%2522%253A%2522storage%2522%252C%2522productSlug%2522%253A%2522upstash-kv%2522%252C%2522integrationSlug%2522%253A%2522upstash%2522%257D%255D&skippable-integrations=1)
 
 Open Agents is an open-source reference app for building and running background coding agents on Vercel. It includes the web UI, the agent runtime, sandbox orchestration, and the GitHub integration needed to go from prompt to code changes without keeping your laptop involved.
 
@@ -46,7 +46,7 @@ A few details that matter for understanding the current implementation:
 - Chat requests start a workflow run instead of executing the agent inline.
 - Each agent turn can continue across many persisted workflow steps.
 - Active runs can be resumed by reconnecting to the stream for the existing workflow.
-- Sandboxes expose ports `3000`, `5173`, `4321`, and `8000`, can optionally use a configured base snapshot, and hibernate after inactivity.
+- Sandboxes expose ports `3000`, `5173`, `4321`, `8000`, and `5001`, use a build-prewarmed deployment template on Vercel, and hibernate after inactivity.
 - Auto-commit and auto-PR are supported, but they are preference-driven features, not always-on behavior.
 
 ## Environment variables
@@ -81,6 +81,7 @@ GITHUB_WEBHOOK_SECRET=
 ### Optional
 
 ```env
+INTERNAL_HARNESS_SECRET=
 REDIS_URL=
 KV_URL=
 OPEN_AGENTS_RESOURCE_PROFILE=
@@ -90,10 +91,11 @@ VERCEL_SANDBOX_BASE_SNAPSHOT_ID=
 ELEVENLABS_API_KEY=
 ```
 
+- `INTERNAL_HARNESS_SECRET`: required to run the external agent harnesses (Codex, Claude Code, Pi). It signs the deployment's own calls to `/api/internal/harness-runner`; without it those harnesses fail closed while `open-agent` keeps working. Generate a dedicated value with `openssl rand -base64 32`, and do not reuse `BETTER_AUTH_SECRET` — the two secrets have different consumers and blast radius.
 - `REDIS_URL` / `KV_URL`: optional skills metadata cache (falls back to in-memory when not configured).
 - `OPEN_AGENTS_RESOURCE_PROFILE`: optional deployment resource profile. Set to `hobby` to use Hobby-compatible defaults for chat and sandbox resources; leave unset for standard behavior.
 - `VERCEL_PROJECT_PRODUCTION_URL` / `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL`: canonical production URL for metadata and some callback behavior.
-- `VERCEL_SANDBOX_BASE_SNAPSHOT_ID`: optional base snapshot for fresh sandboxes. If unset, sandboxes start from Vercel's standard Sandbox runtime. Use a snapshot created in/accessible to your own Vercel scope.
+- `VERCEL_SANDBOX_BASE_SNAPSHOT_ID`: optional explicit base snapshot override for fresh sandboxes. Vercel deployments normally resolve their automatically prewarmed named template without this value. Outside a Vercel deployment, leaving it unset starts from the standard Sandbox runtime.
 - `ELEVENLABS_API_KEY`: voice transcription.
 
 ## Deploy your own copy on Vercel
@@ -138,7 +140,7 @@ ELEVENLABS_API_KEY=
    - make the app public if you want org installs to work cleanly
 
 9. Add the GitHub App env vars and redeploy.
-10. Optionally add Redis/KV, `OPEN_AGENTS_RESOURCE_PROFILE=hobby` for Hobby-compatible resource defaults, the canonical production URL vars, and your own `VERCEL_SANDBOX_BASE_SNAPSHOT_ID` if you want fresh sandboxes to start from a preconfigured image.
+10. Optionally add Redis/KV, `OPEN_AGENTS_RESOURCE_PROFILE=hobby` for Hobby-compatible resource defaults, the canonical production URL vars, and `VERCEL_SANDBOX_BASE_SNAPSHOT_ID` only if you need to override the automatically prewarmed sandbox template.
 
 ## Local setup
 
@@ -223,7 +225,9 @@ pnpm check                  # lint + format check
 pnpm fix                    # lint + format fix
 pnpm typecheck              # typecheck all packages
 pnpm run ci                 # full CI: check, typecheck, tests, migration check
-pnpm sandbox:snapshot-base  # refresh sandbox base snapshot
+pnpm harness:smoke:sandbox:create # create a caller-owned sandbox for harness smoke tests
+pnpm harness:smoke:codex    # run one Codex turn against an existing sandbox
+pnpm sandbox:snapshot-base  # manually layer a new sandbox snapshot from an existing snapshot
 ```
 
 ## Repo layout

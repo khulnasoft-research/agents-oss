@@ -1,6 +1,6 @@
 "use server";
 
-import { connectSandbox } from "@open-agents/sandbox";
+import { connectSandbox } from "@agents-oss/sandbox";
 import { getSessionById, updateSession } from "@/lib/db/sessions";
 import {
   findPullRequest,

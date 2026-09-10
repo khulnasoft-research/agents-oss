@@ -123,7 +123,7 @@ mock.module("@/lib/db/sessions", () => ({
   updateSession: spies.updateSession,
 }));
 
-mock.module("@open-agents/sandbox", () => ({
+mock.module("@agents-oss/sandbox", () => ({
   connectSandbox: spies.connectSandbox,
 }));
 

@@ -42,6 +42,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # ide
 .claude
 
-# open-agents dev server artifacts
-.open-agents-dev-server-state.json
-.open-agents-dev-server-*.pid
+# agents-oss dev server artifacts
+.agents-oss-dev-server-state.json
+.agents-oss-dev-server-*.pid

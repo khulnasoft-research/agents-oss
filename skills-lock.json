@@ -17,7 +17,7 @@
       "computedHash": "32f63a1e56fc41f53497f7b19d6391b7c3e55bedd884c5a4d10bc4eacd2310e4"
     },
     "vercel-react-best-practices": {
-      "source": "vercel-labs/agent-skills",
+      "source": "khulnasoft-research/agent-skills",
       "sourceType": "github",
       "computedHash": "3462ec83f862abb2d532953df33a4dbf87f4616849da5d4b5cc7c13601aaf997"
     }
