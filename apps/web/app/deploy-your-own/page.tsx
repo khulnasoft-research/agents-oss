@@ -36,7 +36,7 @@ const DEPLOY_TEMPLATE_URL = (() => {
   const params = new URLSearchParams([
     ["project-name", "agents-oss"],
     ["repository-name", "agents-oss"],
-    ["repository-url", "https://github.com/vercel-labs/agents-oss"],
+    ["repository-url", "https://github.com/khulnasoft-research/agents-oss"],
     ["demo-title", "Open Agents"],
     [
       "demo-description",

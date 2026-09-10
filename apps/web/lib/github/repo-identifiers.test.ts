@@ -10,7 +10,7 @@ import {
 describe("repo-identifiers", () => {
   test("accepts safe GitHub owner and repo segments", () => {
     expect(isValidGitHubRepoOwner("vercel")).toBe(true);
-    expect(isValidGitHubRepoOwner("vercel-labs")).toBe(true);
+    expect(isValidGitHubRepoOwner("khulnasoft-research")).toBe(true);
     expect(isValidGitHubRepoName("agents-oss")).toBe(true);
     expect(isValidGitHubRepoName("open_agents.v2")).toBe(true);
   });

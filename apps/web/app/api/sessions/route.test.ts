@@ -164,8 +164,8 @@ describe("/api/sessions POST vercel project linking", () => {
       createJsonRequest(
         {
           branch: "main",
-          cloneUrl: "https://github.com/vercel-labs/agents-oss",
-          repoOwner: "vercel-labs",
+          cloneUrl: "https://github.com/khulnasoft-research/agents-oss",
+          repoOwner: "khulnasoft-research",
           repoName: "agents-oss",
         },
         "https://agents-oss.dev/api/sessions",
@@ -197,8 +197,8 @@ describe("/api/sessions POST vercel project linking", () => {
     const response = await POST(
       createJsonRequest({
         branch: "main",
-        cloneUrl: "https://github.com/vercel-labs/agents-oss",
-        repoOwner: "vercel-labs",
+        cloneUrl: "https://github.com/khulnasoft-research/agents-oss",
+        repoOwner: "khulnasoft-research",
         repoName: "agents-oss",
       }),
     );
