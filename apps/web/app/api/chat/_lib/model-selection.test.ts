@@ -102,4 +102,60 @@ describe("resolveChatModelSelection", () => {
       id: APP_DEFAULT_MODEL_ID,
     });
   });
+
+  test("attaches gateway config for a matching custom provider", () => {
+    const selection = resolveChatModelSelection({
+      selectedModelId: "openrouter/anthropic/claude-sonnet-4.5",
+      modelVariants: [],
+      missingVariantLabel: "Selected model variant",
+      customProviders: [
+        {
+          id: "prov1",
+          name: "OpenRouter",
+          baseUrl: "https://openrouter.ai/api/v1",
+          apiKey: "sk-test",
+        },
+      ],
+    });
+
+    expect(selection).toEqual({
+      id: "openrouter/anthropic/claude-sonnet-4.5",
+      gatewayConfig: {
+        baseURL: "https://openrouter.ai/api/v1",
+        apiKey: "sk-test",
+      },
+    });
+  });
+
+  test("does not attach gateway config when provider name does not match", () => {
+    const selection = resolveChatModelSelection({
+      selectedModelId: "kilo/openai/gpt-5.4",
+      modelVariants: [],
+      missingVariantLabel: "Selected model variant",
+      customProviders: [
+        {
+          id: "prov1",
+          name: "OpenRouter",
+          baseUrl: "https://openrouter.ai/api/v1",
+          apiKey: "sk-test",
+        },
+      ],
+    });
+
+    expect(selection).toEqual({
+      id: "kilo/openai/gpt-5.4",
+    });
+  });
+
+  test("does not attach gateway config when no custom providers exist", () => {
+    const selection = resolveChatModelSelection({
+      selectedModelId: "openrouter/anthropic/claude-sonnet-4.5",
+      modelVariants: [],
+      missingVariantLabel: "Selected model variant",
+    });
+
+    expect(selection).toEqual({
+      id: "openrouter/anthropic/claude-sonnet-4.5",
+    });
+  });
 });

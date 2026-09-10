@@ -101,6 +101,27 @@ export interface GatewayOptions {
 
 export type { GatewayModelId, LanguageModel, JSONValue };
 
+/**
+ * Custom providers are OpenAI-compatible endpoints, so only the "openai"
+ * provider option key is read by the AI SDK model. Variant overrides created
+ * by users are keyed by the custom provider's prefix (e.g. "openrouter"), so
+ * they are renamed here before reaching the model; otherwise they would be
+ * silently dropped.
+ */
+export function remapCustomProviderOptions(
+  options: ProviderOptionsByProvider,
+): ProviderOptionsByProvider {
+  const { openai, ...rest } = options;
+
+  let remaining: Record<string, JSONValue> = openai ?? {};
+  for (const value of Object.values(rest)) {
+    remaining = mergeRecords(remaining, toProviderOptionsRecord(value));
+  }
+
+  if (Object.keys(remaining).length === 0) return {};
+  return { openai: remaining };
+}
+
 export function shouldApplyOpenAIReasoningDefaults(modelId: string): boolean {
   return modelId.startsWith("openai/gpt-5");
 }
@@ -188,12 +209,19 @@ export function gateway(
       })
     : createGateway({ headers: attributionHeaders });
 
-  let model: LanguageModel = baseGateway(modelId);
+  // Custom providers are OpenAI-compatible endpoints. The first path segment
+  // of the model id identifies the provider config (e.g. "openrouter"), so it
+  // must be stripped before the model id is sent to the provider's API.
+  const callModelId = config ? stripCustomProviderPrefix(modelId) : modelId;
+  let model: LanguageModel = baseGateway(callModelId);
 
-  const providerOptions = getProviderOptionsForModel(
-    modelId,
-    providerOptionsOverrides,
-  );
+  // Provider-specific defaults (Anthropic thinking, OpenAI store:false, etc.)
+  // only apply to the built-in AI Gateway, which speaks each provider's native
+  // protocol. A custom baseURL is a generic OpenAI-compatible endpoint, so only
+  // explicit overrides (e.g. user model variants) are applied.
+  const providerOptions = config
+    ? remapCustomProviderOptions(providerOptionsOverrides ?? {})
+    : getProviderOptionsForModel(modelId, providerOptionsOverrides);
 
   if (Object.keys(providerOptions).length > 0) {
     model = wrapLanguageModel({
@@ -205,4 +233,15 @@ export function gateway(
   }
 
   return model;
+}
+
+/**
+ * Strip the leading custom-provider segment from a model id.
+ * e.g. "openrouter/anthropic/claude-sonnet-4.5" -> "anthropic/claude-sonnet-4.5"
+ * Models without a provider prefix are returned unchanged.
+ */
+export function stripCustomProviderPrefix(modelId: string): string {
+  const slashIndex = modelId.indexOf("/");
+  if (slashIndex === -1) return modelId;
+  return modelId.slice(slashIndex + 1);
 }

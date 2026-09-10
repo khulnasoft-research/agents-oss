@@ -6,6 +6,10 @@ interface EnvCustomProvider {
   apiKey: string;
 }
 
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
 function readEnvProviders(): EnvCustomProvider[] {
   const providers: EnvCustomProvider[] = [];
 
@@ -17,7 +21,7 @@ function readEnvProviders(): EnvCustomProvider[] {
     const name = process.env[`CUSTOM_PROVIDER${suffix}_NAME`];
 
     if (url && key && name) {
-      providers.push({ name, baseUrl: url, apiKey: key });
+      providers.push({ name, baseUrl: normalizeBaseUrl(url), apiKey: key });
     }
   }
 
@@ -32,12 +36,12 @@ function readEnvProviders(): EnvCustomProvider[] {
     if (url && key) {
       // Avoid duplicates if already added via numbered slots
       const alreadyAdded = providers.some(
-        (p) => p.baseUrl === url && p.apiKey === key,
+        (p) => p.baseUrl === normalizeBaseUrl(url) && p.apiKey === key,
       );
       if (!alreadyAdded) {
         providers.push({
           name: name ?? provider.charAt(0).toUpperCase() + provider.slice(1),
-          baseUrl: url,
+          baseUrl: normalizeBaseUrl(url),
           apiKey: key,
         });
       }

@@ -42,3 +42,13 @@ The first segment identifies which custom provider config to use for API routing
 4. `resolveChatModelSelection()` detects the provider prefix, loads the `GatewayConfig`
 5. `openAgent.prepareCall()` passes `gatewayConfig` to `gateway(modelId, { config })`
 6. `createGateway({ baseURL, apiKey })` routes to the custom provider's OpenAI-compatible API
+
+## Follow-up hardening (post-implementation review)
+
+- **Ownership guards**: `getCustomProviderByKey()` filters by `user_id` (no admin config leak); disabled user providers can be re-enabled/deleted; admin providers are immutable from the user CRUD API.
+- **SSRF protection**: provider `baseUrl` must be `https://` and is rejected when it resolves to a loopback, private/link-local/reserved IP (incl. IPv4-mapped IPv6) or a reserved host suffix (`.local`, `.internal`, `.home.arpa`); the same check is applied at fetch time for env-var providers.
+- **Model-id sanity**: user provider names are trimmed, restricted to letters/numbers/spaces/`_`/`-`, and cannot shadow a built-in gateway provider prefix (`openai`, `anthropic`, ...).
+- **Scope fix**: `GET /api/models` loads only the requesting user's providers (admin-enabled + user-enabled) instead of querying every enabled row.
+- **Variant overrides**: user model-variant `providerOptions` for custom models are remapped from the model-prefix key to the `openai` key, since custom endpoints are OpenAI-compatible.
+
+Additions: `apps/web/lib/custom-providers.test.ts` (ownership + validation/SSRF tests), schema/SSRF helpers in `apps/web/lib/custom-providers.ts`, `remapCustomProviderOptions` in `packages/agent/models.ts`.

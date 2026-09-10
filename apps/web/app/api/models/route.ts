@@ -1,16 +1,13 @@
 import { filterModelsForSession } from "@/lib/model-access";
 import {
   fetchCustomProviderModels,
-  getCustomProviders,
+  getCustomProvidersWithKeys,
   type CustomProvider,
 } from "@/lib/custom-providers";
 import { getEnvCustomProviders } from "@/lib/custom-providers-env";
 import { fetchAvailableLanguageModelsWithContext } from "@/lib/models-with-context";
 import type { AvailableModel } from "@/lib/models";
 import { getServerSession } from "@/lib/session/get-server-session";
-import { db } from "@/lib/db/client";
-import { customProviders } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 
 const CACHE_CONTROL = "private, no-store";
 
@@ -18,27 +15,12 @@ async function fetchAllCustomProviderModels(
   userId: string,
 ): Promise<AvailableModel[]> {
   const [dbProviders, envProviders] = await Promise.all([
-    getCustomProviders(userId),
+    getCustomProvidersWithKeys(userId),
     Promise.resolve(getEnvCustomProviders()),
   ]);
 
   // Merge: env providers are admin-wide, DB providers include user-owned
-  const allProviders: CustomProvider[] = [];
-
-  // Load full DB provider records (with API keys) for model fetching
-  if (dbProviders.length > 0) {
-    const dbRecords = await db
-      .select()
-      .from(customProviders)
-      .where(eq(customProviders.isEnabled, true));
-
-    for (const record of dbRecords) {
-      // Include if admin-wide or owned by this user
-      if (record.userId === null || record.userId === userId) {
-        allProviders.push(record);
-      }
-    }
-  }
+  const allProviders: CustomProvider[] = [...dbProviders];
 
   // Add env providers
   for (const env of envProviders) {
