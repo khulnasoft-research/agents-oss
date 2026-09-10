@@ -11,7 +11,7 @@ describe("repo-identifiers", () => {
   test("accepts safe GitHub owner and repo segments", () => {
     expect(isValidGitHubRepoOwner("vercel")).toBe(true);
     expect(isValidGitHubRepoOwner("vercel-labs")).toBe(true);
-    expect(isValidGitHubRepoName("open-agents")).toBe(true);
+    expect(isValidGitHubRepoName("agents-oss")).toBe(true);
     expect(isValidGitHubRepoName("open_agents.v2")).toBe(true);
   });
 
@@ -22,8 +22,8 @@ describe("repo-identifiers", () => {
 
   test("parses only real github.com HTTPS repo URLs", () => {
     expect(
-      parseGitHubHttpsUrl("https://github.com/vercel/open-agents.git"),
-    ).toEqual({ owner: "vercel", repo: "open-agents" });
+      parseGitHubHttpsUrl("https://github.com/vercel/agents-oss.git"),
+    ).toEqual({ owner: "vercel", repo: "agents-oss" });
     expect(
       parseGitHubHttpsUrl("https://attacker.example/github.com/vercel/repo"),
     ).toBeNull();
@@ -34,9 +34,9 @@ describe("repo-identifiers", () => {
   });
 
   test("parses SSH GitHub URLs without accepting arbitrary hosts", () => {
-    expect(parseGitHubUrl("git@github.com:vercel/open-agents.git")).toEqual({
+    expect(parseGitHubUrl("git@github.com:vercel/agents-oss.git")).toEqual({
       owner: "vercel",
-      repo: "open-agents",
+      repo: "agents-oss",
     });
     expect(
       parseGitHubUrl("git@attacker.example:github.com/vercel/repo.git"),

@@ -1,9 +1,9 @@
-import { discoverSkills } from "@open-agents/agent";
+import { discoverSkills } from "@agents-oss/agent";
 import {
   connectSandbox,
   type Sandbox,
   type SandboxState,
-} from "@open-agents/sandbox";
+} from "@agents-oss/sandbox";
 import { getSessionById } from "@/lib/db/sessions";
 import {
   kickSandboxProvisioningWorkflow,

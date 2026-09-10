@@ -2,7 +2,7 @@
  * Create a new sandbox base snapshot from the currently configured snapshot.
  * Defaults (snapshot id, ports, timeouts) come from the web app sandbox config so
  * this matches production; `refreshBaseSnapshot` skips workspace git bootstrap
- * so the new image stays clone-ready (see `@open-agents/sandbox` snapshot-refresh).
+ * so the new image stays clone-ready (see `@agents-oss/sandbox` snapshot-refresh).
  *
  * Usage:
  *   pnpm sandbox:snapshot-base -- --command "apt-get update"
@@ -12,14 +12,14 @@
 import {
   DEFAULT_BASE_SNAPSHOT_COMMAND_TIMEOUT_MS,
   refreshBaseSnapshot,
-} from "@open-agents/sandbox/vercel";
+} from "@agents-oss/sandbox/vercel";
 import {
   DEFAULT_SANDBOX_BASE_SNAPSHOT_ID,
   DEFAULT_SANDBOX_PORTS,
   DEFAULT_SANDBOX_TIMEOUT_MS,
 } from "../apps/web/lib/sandbox/config.ts";
-
-const SANDBOX_BASE_SNAPSHOT_CONFIG_PATH = "apps/web/lib/sandbox/config.ts";
+import { requireOptionValue, runMain } from "./lib/cli.ts";
+import { prepareSnapshotSandboxRuntimeProfile } from "./lib/harness-runtime-profile.ts";
 
 interface CliOptions {
   baseSnapshotId?: string;
@@ -48,19 +48,6 @@ Current configured base snapshot:
   ${DEFAULT_SANDBOX_BASE_SNAPSHOT_ID}`);
 }
 
-function requireOptionValue(
-  argv: string[],
-  index: number,
-  option: string,
-): string {
-  const value = argv[index + 1];
-  if (!value || value.startsWith("--")) {
-    throw new Error(`Missing value for ${option}.`);
-  }
-
-  return value;
-}
-
 function parsePositiveNumber(value: string, option: string): number {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) {
@@ -78,6 +65,10 @@ function parseArgs(argv: string[]): CliOptions | HelpResult {
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
+
+    if (arg === "--") {
+      continue;
+    }
 
     if (arg === "--help" || arg === "-h") {
       return { help: true };
@@ -131,12 +122,21 @@ async function main() {
     return;
   }
 
+  const baseSnapshotId =
+    parsed.baseSnapshotId ?? DEFAULT_SANDBOX_BASE_SNAPSHOT_ID;
+  if (!baseSnapshotId) {
+    throw new Error(
+      "Pass --from <snapshot-id> or configure VERCEL_SANDBOX_BASE_SNAPSHOT_ID.",
+    );
+  }
+
   const result = await refreshBaseSnapshot({
-    baseSnapshotId: parsed.baseSnapshotId ?? DEFAULT_SANDBOX_BASE_SNAPSHOT_ID,
+    baseSnapshotId,
     commands: parsed.commands,
     sandboxTimeoutMs: parsed.sandboxTimeoutMs ?? DEFAULT_SANDBOX_TIMEOUT_MS,
     commandTimeoutMs: parsed.commandTimeoutMs,
     ports: DEFAULT_SANDBOX_PORTS,
+    prepare: prepareSnapshotSandboxRuntimeProfile,
     log: (message) => console.log(message),
   });
 
@@ -144,12 +144,8 @@ async function main() {
   console.log(`New snapshot id: ${result.snapshotId}`);
   console.log(`Started from snapshot: ${result.sourceSnapshotId}`);
   console.log(
-    `Update ${SANDBOX_BASE_SNAPSHOT_CONFIG_PATH} to use: "${result.snapshotId}"`,
+    `Set VERCEL_SANDBOX_BASE_SNAPSHOT_ID=${result.snapshotId} to use it as an explicit override.`,
   );
 }
 
-main().catch((error) => {
-  const message = error instanceof Error ? error.message : String(error);
-  console.error(message);
-  process.exit(1);
-});
+runMain(main);

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 const DEV_SERVER_PID_FILE =
-  "/vercel/sandbox/apps/web/.open-agents-dev-server-3000.pid";
+  "/vercel/sandbox/apps/web/.agents-oss-dev-server-3000.pid";
 const DEV_SERVER_STATE_FILE =
-  "/vercel/sandbox/.open-agents-dev-server-state.json";
+  "/vercel/sandbox/.agents-oss-dev-server-state.json";
 const RUNNING_PID = "4242";
 
 const currentSessionRecord = {
@@ -181,7 +181,7 @@ const execDetachedMock = mock(async (command: string, cwd: string) => {
   lastLaunchCwd = cwd;
 
   const pidFilePath = command.match(
-    /> '([^']+\.open-agents-dev-server-[0-9]+\.pid)'/,
+    /> '([^']+\.agents-oss-dev-server-[0-9]+\.pid)'/,
   )?.[1];
   if (pidFilePath) {
     setMockFile(pidFilePath, `${RUNNING_PID}\n`);
@@ -207,7 +207,7 @@ mock.module("@/app/api/sessions/_lib/session-context", () => ({
   requireOwnedSessionWithSandboxGuard: requireOwnedSessionWithSandboxGuardMock,
 }));
 
-mock.module("@open-agents/sandbox", () => ({
+mock.module("@agents-oss/sandbox", () => ({
   connectSandbox: connectSandboxMock,
 }));
 
@@ -265,7 +265,9 @@ describe("/api/sessions/[sessionId]/dev-server", () => {
     });
     expect(connectSandboxMock).toHaveBeenCalledWith(
       currentSessionRecord.sandboxState,
-      { ports: [3000, 5173, 4321, 8000] },
+      {
+        ports: [3000, 5173, 4321, 8000, 5001, 5002, 5003, 5004, 5005],
+      },
     );
     expect(execDetachedMock).toHaveBeenCalledTimes(1);
     expect(lastLaunchCwd).toBe("/vercel/sandbox/apps/web");

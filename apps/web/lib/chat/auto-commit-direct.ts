@@ -1,4 +1,4 @@
-import type { Sandbox } from "@open-agents/sandbox";
+import type { Sandbox } from "@agents-oss/sandbox";
 import {
   hasUncommittedChanges,
   stageAll,
@@ -7,9 +7,9 @@ import {
   syncToRemote,
   syncToRemotePreservingChanges,
   withTemporaryGitHubAuth,
-} from "@open-agents/sandbox";
+} from "@agents-oss/sandbox";
 import { generateText } from "ai";
-import { gateway } from "@open-agents/agent";
+import { gateway } from "@agents-oss/agent";
 import { updateSession } from "@/lib/db/sessions";
 import { generateBranchName, isSafeBranchName } from "@/lib/git/helpers";
 import {

@@ -34,15 +34,15 @@ const DEPLOY_PRODUCTS = [
 
 const DEPLOY_TEMPLATE_URL = (() => {
   const params = new URLSearchParams([
-    ["project-name", "open-agents"],
-    ["repository-name", "open-agents"],
-    ["repository-url", "https://github.com/vercel-labs/open-agents"],
+    ["project-name", "agents-oss"],
+    ["repository-name", "agents-oss"],
+    ["repository-url", "https://github.com/vercel-labs/agents-oss"],
     ["demo-title", "Open Agents"],
     [
       "demo-description",
       "Open-source reference app for building and running background coding agents on Vercel.",
     ],
-    ["demo-url", "https://open-agents.dev/"],
+    ["demo-url", "https://agents-oss.dev/"],
     ["env", DEPLOY_ENV_VARS.join(",")],
     [
       "envDescription",

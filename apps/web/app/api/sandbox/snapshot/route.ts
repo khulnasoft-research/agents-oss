@@ -1,4 +1,4 @@
-import { connectSandbox } from "@open-agents/sandbox";
+import { connectSandbox } from "@agents-oss/sandbox";
 import {
   requireAuthenticatedUser,
   requireOwnedSession,

@@ -16,6 +16,23 @@ Authentication uses [Better Auth](https://www.better-auth.com/) with Vercel OAut
 
 Key env vars: `BETTER_AUTH_SECRET` (session signing), `NEXT_PUBLIC_VERCEL_APP_CLIENT_ID` + `VERCEL_APP_CLIENT_SECRET` (Vercel OAuth), plus GitHub App credentials for repo access. See `apps/web/.env.example` for the full list.
 
+`INTERNAL_HARNESS_SECRET` is separate on purpose: it signs the deployment's own calls to `/api/internal/harness-runner` (external agent harnesses) and must never be folded into `BETTER_AUTH_SECRET`. Give each secret exactly one job so a leak of one does not forge the other's material.
+
+### Internal (`/api/internal/*`) endpoints
+
+These are called by the deployment itself, and they are protected by `withInternalRouteGuard` in `apps/web/lib/harness-runner/internal-route.ts`, which runs inside the route bundle: it requires a fresh HMAC over the request's method, path, and body, bounds how much body it will read before that check, and answers anything it cannot authenticate with a bodyless `404`. A new internal route wraps its `POST` in the guard and exports nothing else — every other verb is Next's own `405`. Do not hand-roll handlers for them: the method is part of the signed material, so the verb restriction is enforced by the HMAC, and answering `404` in place of the `405` only obscures an endpoint whose existence is not the secret.
+
+`proxy.ts` filters the same traffic, but only as an optimization — it saves booting an expensive function for junk requests. Never put a control there that the route does not also enforce: a proxy is one `matcher` edit away from not covering a path, and Next middleware has had outright bypass vulnerabilities.
+
+### Sandbox credential brokering
+
+A sandbox's network policy can make the platform attach credentials to requests the sandbox sends (`packages/sandbox/vercel/sandbox.ts`). Brokering is **opt-in per create/connect call, and nothing is read from the environment**: a sandbox runs untrusted code — the agent's bash tool, repository build scripts, the in-sandbox editor, dev servers on public preview URLs — and any of it can use whatever the policy brokers.
+
+- AI Gateway: `/api/internal/harness-runner` passes the credential from `ensureGatewayApiKeyEnv()` to its own `connectSandbox` call, for the turn it is about to run. It is the only caller that does, because it is the only path where the sandbox itself must reach AI Gateway. Do not add an `AI_GATEWAY_API_KEY` fallback inside the sandbox package: every other connect path would then broker the deployment's gateway credential into every sandbox.
+- GitHub: a scoped installation token is brokered for the setup clone/fetch only and cleared before the sandbox is handed to the agent.
+
+Because a policy update replaces the whole policy, a connect that does not opt in also revokes brokering an earlier one established.
+
 ## Database & Migrations
 
 Schema lives in `apps/web/lib/db/schema.ts`. Migrations are managed by Drizzle Kit.

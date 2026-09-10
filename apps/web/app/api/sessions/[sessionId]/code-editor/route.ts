@@ -1,4 +1,4 @@
-import { connectSandbox } from "@open-agents/sandbox";
+import { connectSandbox } from "@agents-oss/sandbox";
 import {
   requireAuthenticatedUser,
   requireOwnedSessionWithSandboxGuard,
@@ -30,8 +30,8 @@ export type CodeEditorStopResponse = {
   stopped: boolean;
 };
 
-const CODE_SERVER_PIDFILE = "/tmp/open-agents-code-server.pid";
-const CODE_SERVER_LOCKDIR = "/tmp/open-agents-code-server.lock";
+const CODE_SERVER_PIDFILE = "/tmp/agents-oss-code-server.pid";
+const CODE_SERVER_LOCKDIR = "/tmp/agents-oss-code-server.lock";
 
 type ConnectedSandbox = Awaited<ReturnType<typeof connectSandbox>>;
 

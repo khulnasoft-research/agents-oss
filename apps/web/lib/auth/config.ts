@@ -46,11 +46,7 @@ function getAuthBaseURLFallback(): string | undefined {
 }
 
 function getAllowedAuthHosts(): string[] {
-  const hosts = new Set<string>([
-    "localhost:3000",
-    "127.0.0.1:3000",
-    "*.vercel.run",
-  ]);
+  const hosts = new Set<string>(["localhost:3000", "127.0.0.1:3000"]);
 
   for (const value of [
     process.env.BETTER_AUTH_URL,

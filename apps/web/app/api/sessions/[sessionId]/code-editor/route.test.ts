@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-const CODE_EDITOR_PID_FILE = "/tmp/open-agents-code-server.pid";
-const CODE_EDITOR_LOCK_DIR = "/tmp/open-agents-code-server.lock";
+const CODE_EDITOR_PID_FILE = "/tmp/agents-oss-code-server.pid";
+const CODE_EDITOR_LOCK_DIR = "/tmp/agents-oss-code-server.lock";
 const RUNNING_CODE_SERVER_PID = "9001";
 
 const currentSessionRecord = {
@@ -144,7 +144,7 @@ mock.module("@/app/api/sessions/_lib/session-context", () => ({
   requireOwnedSessionWithSandboxGuard: requireOwnedSessionWithSandboxGuardMock,
 }));
 
-mock.module("@open-agents/sandbox", () => ({
+mock.module("@agents-oss/sandbox", () => ({
   connectSandbox: connectSandboxMock,
 }));
 
@@ -264,7 +264,7 @@ describe("/api/sessions/[sessionId]/code-editor", () => {
 
     const response = await POST(
       new Request(
-        "https://open-agents.dev/api/sessions/session-1/code-editor",
+        "https://agents-oss.dev/api/sessions/session-1/code-editor",
         {
           method: "POST",
         },

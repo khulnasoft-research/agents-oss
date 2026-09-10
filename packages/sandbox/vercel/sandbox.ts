@@ -12,6 +12,10 @@ import type {
   VercelSandboxConfig,
   VercelSandboxConnectConfig,
 } from "./config.ts";
+import {
+  type AiSdkHarnessSandboxProvider,
+  createHarnessSandboxProvider,
+} from "./harness-provider.ts";
 import type { VercelState } from "./state.ts";
 
 const MAX_OUTPUT_LENGTH = 50_000;
@@ -38,17 +42,61 @@ interface SandboxNetworkPolicy {
   allow: Record<string, SandboxNetworkRule[]>;
 }
 
-const DEFAULT_NETWORK_POLICY: SandboxNetworkPolicy = {
-  allow: {
-    "*": [],
-  },
-};
-
-function buildGitHubCredentialBrokeringPolicy(
-  token?: string,
+/**
+ * Build the policy every sandbox starts from: outbound access to anything,
+ * with no credentials attached on the sandbox's behalf unless this call was
+ * given one.
+ *
+ * AI Gateway brokering is opt-in per create/connect call, and nothing is read
+ * from the environment. Falling back to `AI_GATEWAY_API_KEY` here brokered the
+ * deployment's own gateway credential into *every* sandbox, because every path
+ * that touches a sandbox — session provisioning, lifecycle kicks, dev-server
+ * polls, git status reads, snapshot refreshes, base-snapshot builds — connects
+ * through this module. A sandbox runs untrusted code (the agent's bash tool,
+ * repository build scripts, the in-sandbox editor, dev servers on public
+ * preview URLs), so any of it could spend the deployment's gateway budget with
+ * the platform attaching the `Authorization` header on its behalf, unmetered
+ * and unattributable to a user.
+ *
+ * Only the external-harness runner needs the sandbox itself to reach AI
+ * Gateway, and only for the turn it is running: `connectSandbox` from
+ * `apps/web/app/api/internal/harness-runner/route.ts` is the one caller that
+ * passes a key. Because a policy update replaces the whole policy, every other
+ * connect also revokes brokering that an earlier harness turn left in place.
+ */
+function buildDefaultCredentialBrokeringPolicy(
+  aiGatewayApiKey?: string,
 ): SandboxNetworkPolicy {
+  return {
+    allow: {
+      ...(aiGatewayApiKey
+        ? {
+            "ai-gateway.vercel.sh": [
+              {
+                transform: [
+                  {
+                    headers: {
+                      Authorization: `Bearer ${aiGatewayApiKey}`,
+                    },
+                  },
+                ],
+              },
+            ],
+          }
+        : {}),
+      "*": [],
+    },
+  };
+}
+
+function buildCredentialBrokeringPolicy(
+  token?: string,
+  aiGatewayApiKey?: string,
+): SandboxNetworkPolicy {
+  const policy = buildDefaultCredentialBrokeringPolicy(aiGatewayApiKey);
+
   if (!token) {
-    return DEFAULT_NETWORK_POLICY;
+    return policy;
   }
 
   const basicAuthToken = Buffer.from(
@@ -58,6 +106,7 @@ function buildGitHubCredentialBrokeringPolicy(
 
   return {
     allow: {
+      ...policy.allow,
       "api.github.com": [
         {
           transform: [{ headers: { Authorization: `Bearer ${token}` } }],
@@ -88,6 +137,7 @@ function buildGitHubCredentialBrokeringPolicy(
 async function syncGitHubCredentialBrokering(
   sdk: VercelSandboxSDK,
   token?: string,
+  aiGatewayApiKey?: string,
 ): Promise<void> {
   const updateNetworkPolicy = (
     sdk as VercelSandboxSDK & {
@@ -106,21 +156,23 @@ async function syncGitHubCredentialBrokering(
 
   await updateNetworkPolicy.call(
     sdk,
-    buildGitHubCredentialBrokeringPolicy(token),
+    buildCredentialBrokeringPolicy(token, aiGatewayApiKey),
   );
 }
 
 async function clearGitHubCredentialBrokering(
   sdk: VercelSandboxSDK,
+  aiGatewayApiKey?: string,
 ): Promise<void> {
-  await syncGitHubCredentialBrokering(sdk, undefined);
+  await syncGitHubCredentialBrokering(sdk, undefined, aiGatewayApiKey);
 }
 
 async function clearGitHubCredentialBrokeringBestEffort(
   sdk: VercelSandboxSDK,
+  aiGatewayApiKey?: string,
 ): Promise<void> {
   try {
-    await clearGitHubCredentialBrokering(sdk);
+    await clearGitHubCredentialBrokering(sdk, aiGatewayApiKey);
   } catch (error) {
     console.warn("[VercelSandbox] failed to clear GitHub setup auth:", error);
   }
@@ -199,6 +251,12 @@ export class VercelSandbox implements Sandbox {
   private _expiresAt?: number;
   private _timeout?: number;
   private _ports?: number[];
+  /**
+   * AI Gateway key this sandbox brokers, when the caller that created or
+   * connected it opted in. Kept so a later policy update (GitHub setup auth)
+   * does not silently drop brokering the caller asked for.
+   */
+  private aiGatewayApiKey?: string;
 
   /**
    * Timestamp (ms since epoch) when this sandbox will be proactively stopped.
@@ -229,6 +287,7 @@ export class VercelSandbox implements Sandbox {
     timeout?: number,
     startTime?: number,
     ports?: number[],
+    aiGatewayApiKey?: string,
   ) {
     this.sdk = sdk;
     this.session = session;
@@ -239,6 +298,7 @@ export class VercelSandbox implements Sandbox {
     this.currentBranch = currentBranch;
     this.hooks = hooks;
     this._ports = ports;
+    this.aiGatewayApiKey = aiGatewayApiKey;
     this.isStopped = isStoppedSessionStatus(session.status);
 
     // Set timeout tracking for proactive stop
@@ -516,6 +576,7 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
       gitUser,
       env,
       githubToken,
+      aiGatewayApiKey,
       vcpus = 4,
       timeout = 300_000,
       runtime = "node22",
@@ -544,7 +605,10 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
       timeout: sdkTimeout,
       runtime,
       persistent,
-      networkPolicy: buildGitHubCredentialBrokeringPolicy(githubToken),
+      networkPolicy: buildCredentialBrokeringPolicy(
+        githubToken,
+        aiGatewayApiKey,
+      ),
       ...(ports && { ports }),
       ...(snapshotExpiration !== undefined && { snapshotExpiration }),
     };
@@ -594,7 +658,7 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
 
       if (cloneResult.exitCode !== 0) {
         if (githubToken) {
-          await clearGitHubCredentialBrokeringBestEffort(sdk);
+          await clearGitHubCredentialBrokeringBestEffort(sdk, aiGatewayApiKey);
         }
         throw new Error(
           `Failed to clone repository '${source.url}' (exit code ${cloneResult.exitCode})`,
@@ -655,7 +719,7 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
 
       if (checkoutResult.exitCode !== 0) {
         if (githubToken) {
-          await clearGitHubCredentialBrokeringBestEffort(sdk);
+          await clearGitHubCredentialBrokeringBestEffort(sdk, aiGatewayApiKey);
         }
         throw new Error(
           `Failed to create branch '${source.newBranch}': ${await checkoutResult.stderr()}`,
@@ -668,7 +732,7 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
     }
 
     if (githubToken) {
-      await clearGitHubCredentialBrokering(sdk);
+      await clearGitHubCredentialBrokering(sdk, aiGatewayApiKey);
     }
 
     // Capture startTime AFTER all setup operations so users get their full timeout duration.
@@ -686,6 +750,7 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
       effectiveTimeout,
       startTime,
       ports,
+      aiGatewayApiKey,
     );
 
     // Call afterStart hook if provided
@@ -704,6 +769,12 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
     options: {
       env?: Record<string, string>;
       githubToken?: string;
+      /**
+       * AI Gateway API key brokered via the sandbox network policy. Opt-in:
+       * omitting it connects with no gateway credential brokered, and revokes
+       * one an earlier connect established.
+       */
+      aiGatewayApiKey?: string;
       hooks?: SandboxHooks;
       /**
        * Remaining timeout in ms for this sandbox session.
@@ -720,7 +791,11 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
       name: sandboxName,
       resume: options.resume ?? false,
     });
-    await syncGitHubCredentialBrokering(sdk, undefined);
+    await syncGitHubCredentialBrokering(
+      sdk,
+      undefined,
+      options.aiGatewayApiKey,
+    );
     const session = sdk.currentSession();
 
     // Use provided remainingTimeout when available; otherwise derive it from the
@@ -746,6 +821,7 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
       remainingTimeout,
       startTime,
       options.ports,
+      options.aiGatewayApiKey,
     );
 
     // Call afterStart hook if provided (useful for reconnection setup)
@@ -1021,8 +1097,18 @@ ${hostLine}${portLines}${runtimeEnvLine}`;
     return this.session.domain(port);
   }
 
+  /**
+   * Adapt this caller-owned sandbox for AI SDK harnesses. The returned
+   * provider never stops or deletes the underlying VM.
+   */
+  toHarnessSandboxProvider(
+    bridgePorts: ReadonlyArray<number> = [],
+  ): AiSdkHarnessSandboxProvider {
+    return createHarnessSandboxProvider(this.sdk, bridgePorts);
+  }
+
   async setGitHubAuthToken(token?: string): Promise<void> {
-    await syncGitHubCredentialBrokering(this.sdk, token);
+    await syncGitHubCredentialBrokering(this.sdk, token, this.aiGatewayApiKey);
   }
 
   /**
@@ -1142,6 +1228,7 @@ export async function connectVercelSandbox(
     return VercelSandbox.connect(sandboxName, {
       env: connectConfig.env,
       githubToken: connectConfig.githubToken,
+      aiGatewayApiKey: connectConfig.aiGatewayApiKey,
       hooks: connectConfig.hooks,
       remainingTimeout: connectConfig.remainingTimeout,
       ports: connectConfig.ports,

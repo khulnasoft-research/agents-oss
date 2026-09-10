@@ -1,5 +1,5 @@
 {
-  "name": "@open-agents/agent",
+  "name": "@agents-oss/agent",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,13 +13,15 @@
   "dependencies": {
     "@ai-sdk/anthropic": "catalog:",
     "@ai-sdk/openai": "catalog:",
-    "@open-agents/sandbox": "workspace:*",
+    "@ai-sdk/provider-utils": "5.0.26",
+    "@agents-oss/sandbox": "workspace:*",
+    "@agents-oss/shared": "workspace:*",
     "ai": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@ai-sdk/devtools": "^0.0.15",
-    "@open-agents/tsconfig": "workspace:*",
+    "@agents-oss/tsconfig": "workspace:*",
     "@types/bun": "1.3.12",
     "@types/node": "^22"
   },
