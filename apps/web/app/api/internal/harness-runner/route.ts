@@ -1,7 +1,4 @@
-import type {
-  AiSdkHarnessSandboxProvider,
-  Sandbox,
-} from "@agents-oss/sandbox";
+import type { AiSdkHarnessSandboxProvider, Sandbox } from "@agents-oss/sandbox";
 import { connectSandbox } from "@agents-oss/sandbox";
 import {
   ensureGatewayApiKeyEnv,
