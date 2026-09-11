@@ -1,9 +1,11 @@
 export type OpenAgentsResourceProfile = "standard" | "hobby";
 
 export function getOpenAgentsResourceProfile(): OpenAgentsResourceProfile {
-  return process.env.AGENTS_OSS_RESOURCE_PROFILE === "hobby"
-    ? "hobby"
-    : "standard";
+  const configuredProfile =
+    process.env.OPEN_AGENTS_RESOURCE_PROFILE ??
+    process.env.AGENTS_OSS_RESOURCE_PROFILE;
+
+  return configuredProfile === "hobby" ? "hobby" : "standard";
 }
 
 export function isHobbyResourceProfile(): boolean {

@@ -51,7 +51,7 @@ export async function generateMetadata({
 
   return {
     title: sharedChat?.title ?? "Shared Chat",
-    description: "A shared Open Agents chat.",
+    description: "A shared Agents OSS chat.",
   };
 }
 

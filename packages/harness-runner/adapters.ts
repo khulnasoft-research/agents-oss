@@ -35,7 +35,7 @@ export interface HarnessDefinition {
   instructionExtras: readonly string[];
   /**
    * Built-in harness tools disabled for this harness. Claude Code's native
-   * AskUserQuestion is replaced by the Open Agents ask_user_question client
+   * AskUserQuestion is replaced by the Agents OSS ask_user_question client
    * tool; the framework maps these names to the runtime's `disallowedTools`.
    */
   inactiveTools?: readonly string[];

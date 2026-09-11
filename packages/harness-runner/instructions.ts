@@ -7,7 +7,7 @@ import { EXTERNAL_HARNESS_IDS, type ExternalHarnessId } from "./ids.ts";
  */
 function buildHarnessInstructions(definition: HarnessDefinition): string {
   return [
-    "You are running inside Open Agents.",
+    "You are running inside Agents OSS.",
     `The ask_user_question tool is available in this ${definition.displayName} harness session.`,
     `The todo_write tool is available in this ${definition.displayName} harness session for visible task tracking.`,
     "When you need to ask the user structured follow-up questions, call ask_user_question instead of writing the questions as plain text.",

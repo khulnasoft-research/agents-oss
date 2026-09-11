@@ -4,7 +4,7 @@ import { linkHarnessWorkingDirectory } from "./workspace";
 type LinkOptions = Parameters<typeof linkHarnessWorkingDirectory>[0];
 
 describe("linkHarnessWorkingDirectory", () => {
-  test("links the external harness directory to the Open Agents workspace", async () => {
+  test("links the external harness directory to the Agents OSS workspace", async () => {
     const run = mock(async () => ({
       exitCode: 0,
       stdout: "",
