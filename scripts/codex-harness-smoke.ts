@@ -33,7 +33,7 @@ function printUsage() {
   pnpm harness:smoke:codex -- --sandbox session_<session-id> --prompt "Reply with the current working directory."
 
 Options:
-  --sandbox <name>   Existing caller-owned Open Agents sandbox name
+  --sandbox <name>   Existing caller-owned Agents OSS sandbox name
   --prompt <text>    Prompt for the Codex turn
   --model <id>       Optional Codex model override
   --help             Show this message`);
@@ -72,7 +72,7 @@ function parseArgs(argv: string[]): CliOptions | { help: true } {
 
   if (!sandboxName) {
     throw new Error(
-      "Pass --sandbox <name> for an existing Open Agents sandbox.",
+      "Pass --sandbox <name> for an existing Agents OSSsandbox.",
     );
   }
 

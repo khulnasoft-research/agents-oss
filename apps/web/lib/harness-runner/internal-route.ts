@@ -31,7 +31,7 @@ import { verifyInternalHarnessRequest } from "./internal-request";
  * route buffer. The signature covers the body, so it cannot be verified until
  * the body has been read; this cap is what keeps that read from being unbounded
  * work for anyone who can reach the route (the harness runner's `maxDuration`
- * is up to 800s, 300 on hobby resource profiles). Deliberately generous — a real body is one chat's message history
+ * is 300s). Deliberately generous — a real body is one chat's message history
  * as JSON — because it is a ceiling on abuse, not a budget for callers.
  */
 export const INTERNAL_API_MAX_BODY_BYTES = 5 * 1024 * 1024;

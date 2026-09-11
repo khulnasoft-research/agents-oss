@@ -5,7 +5,7 @@ import {
 } from "./normalize-tool-input.ts";
 
 /**
- * Open Agents tool names the harness bridge reports as dynamic tools but the
+ * Agents OSS tool names the harness bridge reports as dynamic tools but the
  * web UI renders as first-class (static) tool parts.
  */
 const OPEN_AGENT_TOOL_NAMES = new Set([
@@ -27,7 +27,7 @@ function isOpenAgentToolName(toolName: unknown): toolName is string {
 }
 
 /**
- * Map a known Open Agents tool chunk from the bridge's dynamic-tool shape to
+ * Map a known Agents OSStool chunk from the bridge's dynamic-tool shape to
  * a static tool chunk. Unknown tools keep their dynamic flag.
  */
 export function mapOpenAgentToolChunk(chunk: UIMessageChunk): UIMessageChunk {

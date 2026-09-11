@@ -36,7 +36,7 @@ export async function generateMetadata({
   if (!profile) {
     return {
       title: "Public profile",
-      description: "Public Open Agents usage profile.",
+      description: "Public Agents OSS usage profile.",
     };
   }
 
@@ -315,7 +315,7 @@ export default async function PublicUsagePage({
             href="https://agents-oss.vercel.app"
             className="text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
-            Open Agents ↗
+            Agents OSS↗
           </a>
         </div>
       </div>

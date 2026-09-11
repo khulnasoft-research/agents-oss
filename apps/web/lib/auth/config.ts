@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { dash } from "@better-auth/infra";
 import type {
   GithubProfile,
   VercelProfile,
@@ -46,7 +47,11 @@ function getAuthBaseURLFallback(): string | undefined {
 }
 
 function getAllowedAuthHosts(): string[] {
-  const hosts = new Set<string>(["localhost:3000", "127.0.0.1:3000"]);
+  const hosts = new Set<string>([
+    "localhost:3000",
+    "127.0.0.1:3000",
+    "*.vercel.run",
+  ]);
 
   for (const value of [
     process.env.BETTER_AUTH_URL,
@@ -168,4 +173,10 @@ export const auth = betterAuth({
       generateId: () => nanoid(),
     },
   },
+
+  plugins: [
+    dash({
+      apiKey: process.env.BETTER_AUTH_API_KEY,
+    }),
+  ],
 });

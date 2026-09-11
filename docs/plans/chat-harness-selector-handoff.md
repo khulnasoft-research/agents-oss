@@ -11,7 +11,7 @@ Codex or Claude Code yet.
 
 ## Goal
 
-Allow each Open Agents chat to select an agent harness independently, similar
+Allow each Agents OSS chat to select an agent harness independently, similar
 to model selection:
 
 - `open-agent`
@@ -28,13 +28,13 @@ runtime/tool-loop choice, not a model ID.
 
 ## Architecture Decision
 
-Open Agents remains the durable workflow and sandbox lifecycle owner:
+Agents OSSremains the durable workflow and sandbox lifecycle owner:
 
 ```text
-Open Agents web app
+Agents OSSweb app
   -> durable chat workflow
     -> chat-scoped selected harness
-      -> caller-owned Open Agents sandbox
+      -> caller-owned Agents OSSsandbox
 ```
 
 The existing `open-agent` runtime runs through the current external
@@ -91,13 +91,13 @@ provideSandbox({
   excluded it from user-selectable dev-server ports.
 - Added `VercelSandbox.toAgentHarnessWorkspace()` in
   `packages/sandbox/vercel/sandbox.ts`.
-  - Adapts the existing caller-owned Open Agents sandbox to the structural
+  - Adapts the existing caller-owned Agents OSSsandbox to the structural
     hosted-workspace surface expected by `agent-harness-sdk`.
   - Delegates command execution, detached bridge processes, file access,
     bridge port URLs, and network policy updates.
-  - Keeps sandbox lifecycle ownership in Open Agents.
+  - Keeps sandbox lifecycle ownership in Agents OSS
 
-Open Agents verification passed:
+Agents OSSverification passed:
 
 ```bash
 pnpm run ci
@@ -112,21 +112,21 @@ resolved.
 
 ### 1. AI SDK Version Boundary
 
-Open Agents currently uses AI SDK `^6.0.165`.
+Agents OSScurrently uses AI SDK `^6.0.165`.
 
 `agent-harness-sdk` currently peers against `ai@7.0.0-canary.126`.
 
-Do not directly import harness stream result types into the Open Agents UI
+Do not directly import harness stream result types into the Agents OSSUI
 until this version boundary is intentionally resolved. Options:
 
 - move both repos to one compatible AI SDK version
 - expose a version-neutral harness event protocol and normalize it inside
-  Open Agents
+  Agents OSS
 
 ### 2. Sandbox Attachment And Setup
 
-Open Agents owns a durable named Vercel Sandbox and reconnects it at workflow
-step boundaries. Prefer adapting the already-connected Open Agents wrapper:
+Agents OSSowns a durable named Vercel Sandbox and reconnects it at workflow
+step boundaries. Prefer adapting the already-connected Agents OSSwrapper:
 
 ```ts
 const session = sandbox.toAgentHarnessWorkspace();
@@ -140,7 +140,7 @@ const provided = provideSandbox({
 `agent-harness-sdk` also accepts a Vercel Sandbox name resolver when direct
 attachment is useful, but the wrapper adapter avoids reconnecting twice.
 
-Prepare the Open Agents sandbox template before attaching harness runs. The
+Prepare the Agents OSSsandbox template before attaching harness runs. The
 SDK provides a combined profile helper:
 
 ```ts
@@ -157,7 +157,7 @@ write the selected adapter's current bridge files when attaching.
 
 `ensureVercelSnapshotTemplate()` and `refreshBaseSnapshot()` accept a `prepare`
 callback that runs before snapshotting, so the SDK helper has stable automatic
-and manual Open Agents provisioning hooks.
+and manual Agents OSSprovisioning hooks.
 
 The SDK helper is merged on `agent-harness-sdk` main at:
 
@@ -166,19 +166,19 @@ The SDK helper is merged on `agent-harness-sdk` main at:
 ```
 
 The helper is published in
-`@agent-harness-experimental/sandbox-images@0.0.5`. The Open Agents web build
+`@agent-harness-experimental/sandbox-images@0.0.5`. The Agents OSSweb build
 now prewarms a deployment-scoped named Vercel Sandbox template with the
 combined Codex + Claude Code profile. Fresh user sandboxes resolve the
 template's current snapshot internally, so deployments do not need an
 operator-managed snapshot ID. The manual snapshot refresh command remains
 available for explicitly layering a new snapshot from an existing one.
 
-Open Agents must remain the sandbox lifecycle owner. Harness cleanup should
+Agents OSSmust remain the sandbox lifecycle owner. Harness cleanup should
 close bridge/proxy handles without deleting the underlying sandbox.
 
 ### 3. Sandbox Ports
 
-Open Agents now exposes:
+Agents OSSnow exposes:
 
 ```ts
 [3000, 5173, 4321, 8000, 5001]
@@ -191,7 +191,7 @@ ports, so that requires intentionally dropping a preview port.
 ### 4. Durable Workflow Runner
 
 Do not nest the harness SDK's experimental workflow helper inside the Open
-Agents workflow. Open Agents already owns streaming, cancellation, persistence,
+Agents workflow. Agents OSSalready owns streaming, cancellation, persistence,
 sandbox hibernation, and GitHub post-finish automation.
 
 Add a branch in the durable chat workflow:
@@ -218,7 +218,7 @@ adapter state, and network state.
 
 Codex and Claude Code expose different built-in tools from the current Open
 Agent tool set. Normalize their events at the runner boundary. Map approvals
-and ask-user continuations into the current Open Agents interaction UI.
+and ask-user continuations into the current Agents OSSinteraction UI.
 
 Do not pass duplicate filesystem and shell host tools into Codex or Claude Code
 unless there is a specific reason. They already provide native built-ins.
@@ -229,8 +229,8 @@ unless there is a specific reason. They already provide native built-ins.
    `open-agent` executable.
 2. Completed: add configurable Vercel Sandbox name attachment and explicit
    caller-owned dependency setup in `agent-harness-sdk`.
-3. Completed: adapt the connected Open Agents wrapper, reserve sandbox bridge
-   port `5001`, and add the Open Agents base-snapshot preparation hook.
+3. Completed: adapt the connected Agents OSSwrapper, reserve sandbox bridge
+   port `5001`, and add the Agents OSSbase-snapshot preparation hook.
 4. Completed: publish the merged SDK helper packages and wire the combined
    Codex + Claude Code profile into build-prewarmed deployment templates.
 5. Resolve the AI SDK version/event protocol boundary.
@@ -241,7 +241,7 @@ unless there is a specific reason. They already provide native built-ins.
 
 ## Validation
 
-After completing the Open Agents changes:
+After completing the Agents OSSchanges:
 
 ```bash
 pnpm run ci
