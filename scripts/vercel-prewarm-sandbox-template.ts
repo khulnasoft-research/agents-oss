@@ -4,17 +4,6 @@
  * runtimes can resolve the template's current snapshot without a copied ID.
  */
 
-import {
-  createVercelSnapshotTemplateName,
-  ensureVercelSnapshotTemplate,
-} from "@agents-oss/sandbox/vercel";
-import {
-  DEFAULT_SANDBOX_PORTS,
-  DEFAULT_SANDBOX_BASE_SNAPSHOT_ID,
-  DEFAULT_SANDBOX_TIMEOUT_MS,
-} from "../apps/web/lib/sandbox/config.ts";
-import { prepareSnapshotSandboxRuntimeProfile } from "./lib/harness-runtime-profile.ts";
-
 function shouldPrewarmVercelBuild(): boolean {
   return Boolean(
     process.env.VERCEL?.trim() && process.env.VERCEL_DEPLOYMENT_ID?.trim(),
@@ -33,6 +22,19 @@ async function main() {
   if (!deploymentId) {
     throw new Error("VERCEL_DEPLOYMENT_ID is required for template prewarm.");
   }
+
+  const [{
+    createVercelSnapshotTemplateName,
+    ensureVercelSnapshotTemplate,
+  }, { prepareSnapshotSandboxRuntimeProfile }, {
+    DEFAULT_SANDBOX_PORTS,
+    DEFAULT_SANDBOX_BASE_SNAPSHOT_ID,
+    DEFAULT_SANDBOX_TIMEOUT_MS,
+  }] = await Promise.all([
+    import("@agents-oss/sandbox/vercel"),
+    import("./lib/harness-runtime-profile.ts"),
+    import("../apps/web/lib/sandbox/config.ts"),
+  ]);
 
   const result = await ensureVercelSnapshotTemplate({
     templateName: createVercelSnapshotTemplateName(deploymentId),
