@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   metadataBase,
   title: {
     default: "Agents OSS",
-    template: "%s | Agents OSS,
+    template: "%s | Agents OSS",
   },
   description:
     "Spawn coding agents that run infinitely in the cloud. Powered by AI SDK, Gateway, Sandbox, and Workflow SDK.",
