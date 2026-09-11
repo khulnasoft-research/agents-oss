@@ -38,7 +38,7 @@ export type ChatHarnessDefinition =
 const CHAT_HARNESSES: Record<ChatHarnessId, ChatHarnessDefinition> = {
   "open-agent": {
     label: "Open Agent",
-    description: "Durable Open Agents tool loop",
+    description: "Durable Agents OSS tool loop",
   },
   codex: {
     label: "Codex",

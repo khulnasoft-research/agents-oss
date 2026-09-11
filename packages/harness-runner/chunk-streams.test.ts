@@ -46,7 +46,7 @@ describe("mapOpenAgentToolChunk", () => {
     "ask_user_question",
     "skill",
     "web_fetch",
-  ])("maps known Open Agents tool %s to a static tool chunk", (toolName) => {
+  ])("maps known Agents OSS tool %s to a static tool chunk", (toolName) => {
     expect(
       mapOpenAgentToolChunk({
         type: "tool-input-available",

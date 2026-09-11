@@ -6,7 +6,7 @@ import { tool, type ToolSet } from "ai";
 import { normalizeTodoWriteInput } from "./normalize-tool-input.ts";
 
 /**
- * Open Agents tools exposed to every external harness. Input schemas are the
+ * Agents OSS tools exposed to every external harness. Input schemas are the
  * canonical shared zod schemas, so the harness bridge, the open-agent loop,
  * and the web renderers all agree on the tool contract.
  */
