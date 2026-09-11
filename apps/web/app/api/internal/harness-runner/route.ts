@@ -14,8 +14,9 @@ import {
   AGENT_HARNESS_BRIDGE_PORTS,
   DEFAULT_SANDBOX_PORTS,
 } from "@/lib/sandbox/config";
+import { isHobbyResourceProfile } from "@/lib/deployment/resource-profile";
 
-export const maxDuration = 800;
+export const maxDuration = isHobbyResourceProfile() ? 300 : 800;
 
 // Why an HTTP route instead of the workflow step calling `runHarnessTurn`
 // directly: the harness bridge assets and externalized packages can only be
