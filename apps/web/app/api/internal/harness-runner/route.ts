@@ -15,7 +15,7 @@ import {
   DEFAULT_SANDBOX_PORTS,
 } from "@/lib/sandbox/config";
 
-export const maxDuration = 800;
+export const maxDuration = 300;
 
 // Why an HTTP route instead of the workflow step calling `runHarnessTurn`
 // directly: the harness bridge assets and externalized packages can only be

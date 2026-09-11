@@ -23,6 +23,7 @@
     "@agents-oss/shared": "workspace:*",
     "@ai-sdk/elevenlabs": "3.0.27",
     "@ai-sdk/react": "catalog:",
+    "@better-auth/infra": "^0.4.9",
     "@octokit/auth-app": "^8.2.0",
     "@octokit/rest": "^22.0.1",
     "@pierre/diffs": "^1.0.10",

@@ -9,7 +9,7 @@ import {
 /**
  * `/api/internal/*` endpoints are called by the deployment itself, never by a
  * browser, and their handlers are expensive — the harness runner holds a
- * streaming connection open for a whole agent turn (`maxDuration = 800`).
+ * streaming connection open for a whole agent turn (`maxDuration` is 300s).
  * Dropping traffic that cannot possibly be one of those calls saves booting the
  * function for it.
  *
