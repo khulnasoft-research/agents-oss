@@ -267,6 +267,13 @@
       "when": 1786450669218,
       "tag": "0037_complete_squirrel_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1789046962167,
+      "tag": "0038_sturdy_sunfire",
+      "breakpoints": true
     }
   ]
 }

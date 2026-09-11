@@ -208,6 +208,46 @@ function ZAIIcon(props: IconProps) {
   );
 }
 
+function OpenRouterIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" {...props}>
+      <path
+        fill="currentColor"
+        d="M1.5 3.5h3v3h-3zM6.5 3.5h3v3h-3zM11.5 3.5h3v3h-3zM1.5 8.5h3v3h-3zM6.5 8.5h3v3h-3zM11.5 8.5h3v3h-3zM4 2v1.5M9 2v1.5M14 2v1.5M4 12.5V14M9 12.5V14M14 12.5V14M1.5 6.5h13v3h-13z"
+      />
+    </svg>
+  );
+}
+
+function KiloIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" {...props}>
+      <path
+        fill="currentColor"
+        d="M2 2h3v12H2zM7 2h2.5l4 12H9.5L7 2zM6.5 8h3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+        stroke="currentColor"
+      />
+    </svg>
+  );
+}
+
+function OpencodeIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" {...props}>
+      <path
+        d="M3 3l5 5-5 5M8 3l5 5-5 5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.5"
+        stroke="currentColor"
+      />
+    </svg>
+  );
+}
+
 function DefaultProviderIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -246,6 +286,10 @@ const providerIconMap: Record<string, React.FC<IconProps>> = {
   cohere: CohereIcon,
   meta: MetaIcon,
   zai: ZAIIcon,
+  openrouter: OpenRouterIcon,
+  kilo: KiloIcon,
+  opencode: OpencodeIcon,
+  zen: OpencodeIcon,
 };
 
 const providerDisplayNames: Record<string, string> = {
@@ -263,6 +307,10 @@ const providerDisplayNames: Record<string, string> = {
   fireworks: "Fireworks",
   meta: "Meta",
   zai: "ZAI",
+  openrouter: "OpenRouter",
+  kilo: "Kilo",
+  opencode: "OpenCode",
+  zen: "OpenCode Zen",
 };
 
 /** Prefixes in model display names that match the provider brand (stripped in compact UI). */

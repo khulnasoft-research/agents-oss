@@ -33,7 +33,9 @@ const {
   gateway,
   getProviderOptionsForModel,
   mergeProviderOptions,
+  remapCustomProviderOptions,
   shouldApplyOpenAIReasoningDefaults,
+  stripCustomProviderPrefix,
 } = await import("./models");
 
 describe("shouldApplyOpenAIReasoningDefaults", () => {
@@ -246,6 +248,22 @@ describe("mergeProviderOptions", () => {
   });
 });
 
+describe("stripCustomProviderPrefix", () => {
+  test("strips the leading provider segment", () => {
+    expect(
+      stripCustomProviderPrefix("openrouter/anthropic/claude-sonnet-4.5"),
+    ).toBe("anthropic/claude-sonnet-4.5");
+  });
+
+  test("strips the leading segment for a single-segment model", () => {
+    expect(stripCustomProviderPrefix("opencode/gpt-5")).toBe("gpt-5");
+  });
+
+  test("returns the model id unchanged when no slash is present", () => {
+    expect(stripCustomProviderPrefix("gpt-5")).toBe("gpt-5");
+  });
+});
+
 describe("gateway attribution headers", () => {
   test("sends default attribution headers", () => {
     createGatewayCalls.length = 0;
@@ -294,5 +312,57 @@ describe("gateway attribution headers", () => {
         },
       },
     ]);
+  });
+});
+
+describe("remapCustomProviderOptions", () => {
+  test("renames the custom provider prefix key to openai", () => {
+    expect(
+      remapCustomProviderOptions({
+        openrouter: {
+          logit_bias: { "42": 2 },
+        },
+      }),
+    ).toEqual({
+      openai: {
+        logit_bias: { "42": 2 },
+      },
+    });
+  });
+
+  test("merges an existing openai key with the renamed custom overrides", () => {
+    expect(
+      remapCustomProviderOptions({
+        openrouter: {
+          store: true,
+        },
+        openai: {
+          max_tokens: 1000,
+        },
+      }),
+    ).toEqual({
+      openai: {
+        store: true,
+        max_tokens: 1000,
+      },
+    });
+  });
+
+  test("returns empty options when there is nothing to remap", () => {
+    expect(remapCustomProviderOptions({})).toEqual({});
+  });
+
+  test("keeps the openai key when no custom prefix is present", () => {
+    expect(
+      remapCustomProviderOptions({
+        openai: {
+          store: false,
+        },
+      }),
+    ).toEqual({
+      openai: {
+        store: false,
+      },
+    });
   });
 });
