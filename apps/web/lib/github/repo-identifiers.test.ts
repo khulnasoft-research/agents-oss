@@ -12,7 +12,7 @@ describe("repo-identifiers", () => {
     expect(isValidGitHubRepoOwner("vercel")).toBe(true);
     expect(isValidGitHubRepoOwner("khulnasoft-research")).toBe(true);
     expect(isValidGitHubRepoName("agents-oss")).toBe(true);
-    expect(isValidGitHubRepoName("open_agents.v2")).toBe(true);
+    expect(isValidGitHubRepoName("AGENTS_OSS.v2")).toBe(true);
   });
 
   test("rejects unsafe GitHub owner and repo segments", () => {

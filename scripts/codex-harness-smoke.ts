@@ -71,9 +71,7 @@ function parseArgs(argv: string[]): CliOptions | { help: true } {
   }
 
   if (!sandboxName) {
-    throw new Error(
-      "Pass --sandbox <name> for an existing Agents OSSsandbox.",
-    );
+    throw new Error("Pass --sandbox <name> for an existing Agents OSSsandbox.");
   }
 
   return { sandboxName, prompt, model };

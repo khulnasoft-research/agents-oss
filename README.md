@@ -84,7 +84,7 @@ GITHUB_WEBHOOK_SECRET=
 INTERNAL_HARNESS_SECRET=
 REDIS_URL=
 KV_URL=
-OPEN_AGENTS_RESOURCE_PROFILE=
+AGENTS_OSS_RESOURCE_PROFILE=
 VERCEL_PROJECT_PRODUCTION_URL=
 NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL=
 VERCEL_SANDBOX_BASE_SNAPSHOT_ID=
@@ -93,7 +93,7 @@ ELEVENLABS_API_KEY=
 
 - `INTERNAL_HARNESS_SECRET`: required to run the external agent harnesses (Codex, Claude Code, Pi). It signs the deployment's own calls to `/api/internal/harness-runner`; without it those harnesses fail closed while `open-agent` keeps working. Generate a dedicated value with `openssl rand -base64 32`, and do not reuse `BETTER_AUTH_SECRET` — the two secrets have different consumers and blast radius.
 - `REDIS_URL` / `KV_URL`: optional skills metadata cache (falls back to in-memory when not configured).
-- `OPEN_AGENTS_RESOURCE_PROFILE`: optional deployment resource profile. Set to `hobby` to use Hobby-compatible defaults for chat and sandbox resources; leave unset for standard behavior.
+- `AGENTS_OSS_RESOURCE_PROFILE`: optional deployment resource profile. Set to `hobby` to use Hobby-compatible defaults for chat and sandbox resources; leave unset for standard behavior.
 - `VERCEL_PROJECT_PRODUCTION_URL` / `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL`: canonical production URL for metadata and some callback behavior.
 - `VERCEL_SANDBOX_BASE_SNAPSHOT_ID`: optional explicit base snapshot override for fresh sandboxes. Vercel deployments normally resolve their automatically prewarmed named template without this value. Outside a Vercel deployment, leaving it unset starts from the standard Sandbox runtime.
 - `ELEVENLABS_API_KEY`: voice transcription.
@@ -140,7 +140,7 @@ ELEVENLABS_API_KEY=
    - make the app public if you want org installs to work cleanly
 
 9. Add the GitHub App env vars and redeploy.
-10. Optionally add Redis/KV, `OPEN_AGENTS_RESOURCE_PROFILE=hobby` for Hobby-compatible resource defaults, the canonical production URL vars, and `VERCEL_SANDBOX_BASE_SNAPSHOT_ID` only if you need to override the automatically prewarmed sandbox template.
+10. Optionally add Redis/KV, `AGENTS_OSS_RESOURCE_PROFILE=hobby` for Hobby-compatible resource defaults, the canonical production URL vars, and `VERCEL_SANDBOX_BASE_SNAPSHOT_ID` only if you need to override the automatically prewarmed sandbox template.
 
 ## Local setup
 

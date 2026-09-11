@@ -57,8 +57,7 @@ const DEPLOY_TEMPLATE_URL = (() => {
 
 export const metadata: Metadata = {
   title: "Deploy your own",
-  description:
-    "Deploy your own copy of Agents OSSto unlock the full template.",
+  description: "Deploy your own copy of Agents OSSto unlock the full template.",
 };
 
 export default function DeployYourOwnPage() {
