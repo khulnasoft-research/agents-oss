@@ -308,7 +308,7 @@ describe("gateway attribution headers", () => {
         apiKey: "sk-test",
         headers: {
           "http-referer": "https://agents-oss.vercel.app",
-          "x-title": "Agents OSS,
+          "x-title": "Agents OSS",
         },
       },
     ]);
